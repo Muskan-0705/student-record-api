@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Record App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f7f9fc;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0a0a0a;
+    }
+
+    form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    input {
+      flex: 1;
+      min-width: 140px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background: #0066ff;
+      border: none;
+      color: rgba(253, 253, 253, 0.927);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #17a2b8;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: #fff;
+      margin-top: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    th {
+      background: #0066ff;
+      text-align: left;
+      color: white;
+      padding: 10px;
+    }
+
+    td {
+      border-bottom: 1px solid #eee;
+      padding: 10px;
+    }
+
+    tr:hover {
+      background: #f1f5ff;
+    }
+
+    .delete-btn {
+      background: #ff4141;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      background: #d60000;
+    }
+
+    .edit-btn {
+      background: #00b074;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 6px;
+    }
+
+    .edit-btn:hover {
+      background: #008a57;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Student Record App</h1>
+
+  <form id="studentForm">
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="text" id="course" placeholder="Course" required />
+    <input type="number" id="age" placeholder="Age" />
+    <input type="text" id="city" placeholder="City" />
+    <button type="submit">Add Student</button>
+  </form>
+
+  <h2>Student List</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Course</th>
+        <th>Age</th>
+        <th>City</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="studentTable"></tbody>
+  </table>
+
+  <script>
+    // Change this if your backend uses a different port or host
+    const API_URL = "http://localhost:8000/students";
+
+    let editingId = null; // holds id when editing
+
+    async function fetchStudents() {
+      try {
+        const res = await fetch("http://localhost:8000/students");
+        const data = await res.json();
+        const table = document.getElementById("studentTable");
+        table.innerHTML = "";
+        data.forEach(student => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${escapeHtml(student.name)}</td>
+            <td>${escapeHtml(student.course)}</td>
+            <td>${student.age ?? ''}</td>
+            <td>${escapeHtml(student.city ?? '')}</td>
+            <td>
+              <button class="edit-btn" onclick="editStudent('${student._id}', ${JSON.stringify(student.name)}, ${JSON.stringify(student.course)}, ${JSON.stringify(student.age)}, ${JSON.stringify(student.city)})">Edit</button>
+              <button class="delete-btn" onclick="deleteStudent('${student._id}')">Delete</button>
+            </td>`;
+          table.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Failed to fetch students:", err);
+        alert("Could not load students. Check console for details.");
+      }
+    }
+
+    // Helper to avoid basic HTML injection when inserting text
+    function escapeHtml(text) {
+      if (text === null || text === undefined) return "";
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    document.getElementById("studentForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const student = {
+        name: document.getElementById("name").value.trim(),
+        course: document.getElementById("course").value.trim(),
+        age: document.getElementById("age").value ? Number(document.getElementById("age").value) : undefined,
+        city: document.getElementById("city").value.trim(),
+      };
+
+      try {
+        if (editingId) {
+          // Update existing
+          await fetch(`${API_URL} / ${editingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(student)
+          });
+          editingId = null;
+          document.querySelector('button[type="submit"]').textContent = 'Add Student';
+        } else {
+          // Create new
+          await fetch("http://localhost:8000/students", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(student)
+          });
+        }
+
+        fetchStudents();
+        e.target.reset();
+      } catch (err) {
+        console.error("Save failed:", err);
+        alert("Could not save student. Check console for details.");
+      }
+    });
+
+    function editStudent(id, name, course, age, city) {
+      editingId = id;
+      document.getElementById("name").value = name ?? "";
+      document.getElementById("course").value = course ?? "";
+      document.getElementById("age").value = age ?? "";
+      document.getElementById("city").value = city ?? "";
+      document.querySelector('button[type="submit"]').textContent = 'Update Student';
+      // Scroll to form (optional)
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function deleteStudent(id) {
+      if (!confirm("Are you sure you want to delete this student?")) return;
+      try {
+        await fetch(`${API_URL} / ${id}`, { method: "DELETE" });
+        fetchStudents();
+      } catch (err) {
+        console.error("Delete failed:", err);
+        alert("Could not delete student. Check console for details.");
+      }
+    }
+
+    // initial load
+    fetchStudents();
+  </script>
+</body>
+
+</html>

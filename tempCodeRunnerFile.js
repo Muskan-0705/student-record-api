@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 // 1) MongoDB Connect
-mongoose.connect("mongodb+srv://muskanjanghel00_db_user:1hpcTVCEaJUDpExY@cluster0.m3h66ug.mongodb.net/studentdb?retryWrites=true&w=majority", {
+mongoose.connect("mongodb+srv://Muskanjanghel:4jXnttQNwMOwIec4@cluster0.m3h66ug.mongodb.net/studentdb?retryWrites=true&w=majority", {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
@@ -50,6 +50,6 @@ app.delete("/students/:id", async (req, res) => {
 });
 
 // Server Run
-app.listen(5000, () => {
+app.listen(8000, () => {
   console.log("🚀 Server running on http://localhost:8000");
 });
