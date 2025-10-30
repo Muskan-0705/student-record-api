@@ -131,13 +131,13 @@
 
   <script>
     // Change this if your backend uses a different port or host
-    const API_URL = "http://localhost:8000/students";
+    const API_URL = "https://student-record-api-xl8u.onrender.com";
 
     let editingId = null; // holds id when editing
 
     async function fetchStudents() {
       try {
-        const res = await fetch("http://localhost:8000/students");
+        const res = await fetch("https://student-record-api-xl8u.onrender.com");
         const data = await res.json();
         const table = document.getElementById("studentTable");
         table.innerHTML = "";
@@ -192,7 +192,7 @@
           document.querySelector('button[type="submit"]').textContent = 'Add Student';
         } else {
           // Create new
-          await fetch("http://localhost:8000/students", {
+          await fetch("https://student-record-api-xl8u.onrender.com", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(student)
