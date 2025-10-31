@@ -9,12 +9,9 @@ app.use(express.json());
 app.use(cors());
 
 // 1) MongoDB Connect
-mongoose.connect(process.env.MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-  .then(() => console.log("✅ Database Connected Successfully"))
-  .catch(err => console.log("❌ Database Connection Error:", err));
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("Database Connected Successfully"))
+  .catch(err => console.log("Database Connection Error: ", err));
 
 // 2) GET - Fetch all students 
 app.get("/students", async (req, res) => {
